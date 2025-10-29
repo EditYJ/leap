@@ -19,9 +19,15 @@
         "resizable": false,
         "decorations": false,
         "center": true,
-        "skipTaskbar": true
+        "skipTaskbar": true,
+        "visible": false
       }
     ],
+    "trayIcon": {
+      "iconPath": "icons/icon.png",
+      "iconAsTemplate": true,
+      "title": "Leap"
+    },
     "security": {
       "csp": null
     }

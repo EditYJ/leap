@@ -26,7 +26,20 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
+        .on_tray_icon_event(|app, event| match event {
+            tauri::tray::TrayIconEvent::DoubleClick {
+                id,
+                position,
+                rect,
+                button,
+            } => {
+                toggle_window(app.clone());
+            }
+            _ => {}
+        })
         .setup(|app| {
+            #[cfg(target_os = "macos")]
+            app.set_activation_policy(tauri::ActivationPolicy::Accessory);
             let shortcut = Shortcut::new(Some(Modifiers::CONTROL), Code::Space);
             app.global_shortcut()
                 .on_shortcut(shortcut, move |handler, _shortcut, event| {
