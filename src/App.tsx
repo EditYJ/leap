@@ -1,15 +1,6 @@
-import { useState } from 'react'
-import { useHotkeys } from 'react-hotkeys-hook'
 import { CommandPalette } from './components/features/CommandPalette'
 
 function App() {
-  const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false)
-
-  // 全局快捷键：ctrl + Space
-  useHotkeys('ctrl+space', () => {
-    setIsCommandPaletteOpen(true)
-  })
-
   return (
     <div className='bg-background h-screen'>
       <main className='container mx-auto p-4'>
@@ -20,7 +11,7 @@ function App() {
         </p>
       </main>
 
-      <CommandPalette open={isCommandPaletteOpen} onOpenChange={setIsCommandPaletteOpen} />
+      <CommandPalette />
     </div>
   )
 }
