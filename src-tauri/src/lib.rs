@@ -44,8 +44,8 @@ async fn animate_window_resize(app: AppHandle, target_width: f64, target_height:
                 let target_x = (screen_width - target_width) / 2.0;
                 let target_y = (screen_height - target_height) / 2.0;
 
-                let steps = 15; // 动画步数
-                let duration = 200; // 总时长（毫秒）
+                let steps = 6; // 动画步数
+                let duration = 100; // 总时长（毫秒）
                 let step_duration = duration / steps;
 
                 for i in 1..=steps {

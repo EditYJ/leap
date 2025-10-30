@@ -1,4 +1,3 @@
-import { useState, useEffect } from 'react'
 import {
   Command,
   CommandEmpty,
@@ -18,34 +17,10 @@ import {
   Music,
 } from 'lucide-react'
 import { invoke } from '@tauri-apps/api/core'
-import { Calculator } from '@/components/features/Calculator'
+import { useNavigate } from 'react-router-dom'
 
-interface CommandPaletteProps {}
-
-type View = 'command' | 'calculator'
-
-export function CommandPalette(_props: CommandPaletteProps) {
-  const [currentView, setCurrentView] = useState<View>('command')
-
-  useEffect(() => {
-    const resizeWindow = async () => {
-      if (currentView === 'calculator') {
-        // 计算器界面尺寸
-        await invoke('animate_window_resize', {
-          targetWidth: 360,
-          targetHeight: 480,
-        })
-      } else {
-        // 命令面板尺寸
-        await invoke('animate_window_resize', {
-          targetWidth: 600,
-          targetHeight: 340,
-        })
-      }
-    }
-
-    resizeWindow()
-  }, [currentView])
+export function CommandPage() {
+  const navigate = useNavigate()
 
   const handleItemSelect = (action: () => void) => {
     action()
@@ -53,19 +28,11 @@ export function CommandPalette(_props: CommandPaletteProps) {
   }
 
   const openCalculator = () => {
-    setCurrentView('calculator')
-  }
-
-  const backToCommand = () => {
-    setCurrentView('command')
-  }
-
-  if (currentView === 'calculator') {
-    return <Calculator onBack={backToCommand} />
+    navigate('/calculator')
   }
 
   return (
-    <div className='flex h-screen w-full items-start justify-center bg-transparent'>
+    <div className='flex h-screen w-full items-start justify-center'>
       <Command>
         <CommandInput placeholder='搜索应用、文件等...' />
         <CommandList>
