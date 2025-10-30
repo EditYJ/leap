@@ -1,3 +1,5 @@
+use std::thread;
+use std::time::Duration;
 use tauri::{AppHandle, Manager};
 use tauri_plugin_global_shortcut::{
     Code, GlobalShortcutExt as _, Modifiers, Shortcut, ShortcutState,
@@ -17,6 +19,66 @@ fn toggle_window(app: AppHandle) {
         } else {
             let _ = window.show();
             let _ = window.set_focus();
+        }
+    }
+}
+
+#[tauri::command]
+async fn animate_window_resize(app: AppHandle, target_width: f64, target_height: f64) {
+    if let Some(window) = app.get_webview_window("main") {
+        if let (Ok(current_size), Ok(current_position)) =
+            (window.outer_size(), window.outer_position())
+        {
+            let start_width = current_size.width as f64;
+            let start_height = current_size.height as f64;
+            let start_x = current_position.x as f64;
+            let start_y = current_position.y as f64;
+
+            // 获取屏幕尺寸来计算居中位置
+            if let Some(monitor) = window.current_monitor().ok().flatten() {
+                let screen_size = monitor.size();
+                let screen_width = screen_size.width as f64;
+                let screen_height = screen_size.height as f64;
+
+                // 计算目标居中位置
+                let target_x = (screen_width - target_width) / 2.0;
+                let target_y = (screen_height - target_height) / 2.0;
+
+                let steps = 15; // 动画步数
+                let duration = 200; // 总时长（毫秒）
+                let step_duration = duration / steps;
+
+                for i in 1..=steps {
+                    let progress = i as f64 / steps as f64;
+                    // 使用缓动函数（ease-out）
+                    let eased_progress = 1.0 - (1.0 - progress).powi(3);
+
+                    let new_width = start_width + (target_width - start_width) * eased_progress;
+                    let new_height = start_height + (target_height - start_height) * eased_progress;
+                    let new_x = start_x + (target_x - start_x) * eased_progress;
+                    let new_y = start_y + (target_y - start_y) * eased_progress;
+
+                    let _ = window.set_size(tauri::PhysicalSize::new(
+                        new_width as u32,
+                        new_height as u32,
+                    ));
+
+                    let _ = window
+                        .set_position(tauri::PhysicalPosition::new(new_x as i32, new_y as i32));
+
+                    thread::sleep(Duration::from_millis(step_duration as u64));
+                }
+
+                // 确保最终尺寸和位置精确
+                let _ = window.set_size(tauri::PhysicalSize::new(
+                    target_width as u32,
+                    target_height as u32,
+                ));
+                let _ = window.set_position(tauri::PhysicalPosition::new(
+                    target_x as i32,
+                    target_y as i32,
+                ));
+            }
         }
     }
 }
@@ -58,7 +120,11 @@ pub fn run() {
                 })?;
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![greet, toggle_window])
+        .invoke_handler(tauri::generate_handler![
+            greet,
+            toggle_window,
+            animate_window_resize
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
