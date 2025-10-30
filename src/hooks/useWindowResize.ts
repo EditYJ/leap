@@ -5,6 +5,7 @@ import { invoke } from '@tauri-apps/api/core'
 const routeSizes: Record<string, { width: number; height: number }> = {
   '/': { width: 600, height: 340 },
   '/calculator': { width: 360, height: 480 },
+  '/json-formatter': { width: 750, height: 600 },
 }
 
 export function useWindowResize() {

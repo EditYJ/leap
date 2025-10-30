@@ -15,6 +15,7 @@ import {
   FileText,
   Mail,
   Music,
+  Braces,
 } from 'lucide-react'
 import { invoke } from '@tauri-apps/api/core'
 import { useNavigate } from 'react-router-dom'
@@ -29,6 +30,10 @@ export function CommandPage() {
 
   const openCalculator = () => {
     navigate('/calculator')
+  }
+
+  const openJsonFormatter = () => {
+    navigate('/json-formatter')
   }
 
   return (
@@ -61,6 +66,10 @@ export function CommandPage() {
             <CommandItem onSelect={openCalculator}>
               <CalculatorIcon className='h-4 w-4' />
               <span>计算器</span>
+            </CommandItem>
+            <CommandItem onSelect={openJsonFormatter}>
+              <Braces className='h-4 w-4' />
+              <span>JSON 格式化</span>
             </CommandItem>
             <CommandItem onSelect={() => handleItemSelect(() => console.log('Clipboard'))}>
               <Clipboard className='h-4 w-4' />
