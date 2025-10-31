@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
 import { ToolLayout } from '@/components/layouts/ToolLayout'
 import { cn } from '@/lib/utils'
 
