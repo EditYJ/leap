@@ -5,10 +5,22 @@ use tauri_plugin_global_shortcut::{
     Code, GlobalShortcutExt as _, Modifiers, Shortcut, ShortcutState,
 };
 
+mod apps;
+
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 #[tauri::command]
 fn greet(name: &str) -> String {
     format!("Hello, {}! You've been greeted from Rust!", name)
+}
+
+#[tauri::command]
+fn get_installed_apps() -> Vec<apps::AppInfo> {
+    apps::get_installed_apps()
+}
+
+#[tauri::command]
+fn launch_app(path: String) -> Result<(), String> {
+    apps::launch_app(&path)
 }
 
 #[tauri::command]
@@ -123,7 +135,9 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             greet,
             toggle_window,
-            animate_window_resize
+            animate_window_resize,
+            get_installed_apps,
+            launch_app
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

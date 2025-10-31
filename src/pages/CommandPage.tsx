@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react'
 import {
   Command,
   CommandEmpty,
@@ -6,22 +7,36 @@ import {
   CommandItem,
   CommandList,
 } from '@/components/ui/command'
-import {
-  Calculator as CalculatorIcon,
-  Clipboard,
-  Globe,
-  Settings,
-  Terminal,
-  FileText,
-  Mail,
-  Music,
-  Braces,
-} from 'lucide-react'
+import { Calculator as CalculatorIcon, Braces, AppWindow } from 'lucide-react'
 import { invoke } from '@tauri-apps/api/core'
 import { useNavigate } from 'react-router-dom'
 
+interface AppInfo {
+  name: string
+  path: string
+  icon: string | null
+}
+
 export function CommandPage() {
   const navigate = useNavigate()
+  const [installedApps, setInstalledApps] = useState<AppInfo[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    // 组件挂载时获取已安装的应用列表
+    const fetchApps = async () => {
+      try {
+        const apps = await invoke<AppInfo[]>('get_installed_apps')
+        setInstalledApps(apps)
+      } catch (error) {
+        console.error('Failed to get installed apps:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchApps()
+  }, [])
 
   const handleItemSelect = (action: () => void) => {
     action()
@@ -36,32 +51,20 @@ export function CommandPage() {
     navigate('/json-formatter')
   }
 
+  const launchApp = async (path: string) => {
+    try {
+      await invoke('launch_app', { path })
+    } catch (error) {
+      console.error('Failed to launch app:', error)
+    }
+  }
+
   return (
     <div className='flex h-screen w-full items-start justify-center'>
       <Command>
         <CommandInput placeholder='搜索应用、文件等...' />
         <CommandList>
           <CommandEmpty>没有找到结果。</CommandEmpty>
-
-          <CommandGroup heading='应用程序'>
-            <CommandItem onSelect={() => handleItemSelect(() => console.log('Launch Chrome'))}>
-              <Globe className='h-4 w-4' />
-              <span>Google Chrome</span>
-            </CommandItem>
-            <CommandItem onSelect={() => handleItemSelect(() => console.log('Launch Terminal'))}>
-              <Terminal className='h-4 w-4' />
-              <span>终端</span>
-            </CommandItem>
-            <CommandItem onSelect={() => handleItemSelect(() => console.log('Launch Settings'))}>
-              <Settings className='h-4 w-4' />
-              <span>系统设置</span>
-            </CommandItem>
-            <CommandItem onSelect={() => handleItemSelect(() => console.log('Launch Mail'))}>
-              <Mail className='h-4 w-4' />
-              <span>邮件</span>
-            </CommandItem>
-          </CommandGroup>
-
           <CommandGroup heading='工具'>
             <CommandItem onSelect={openCalculator}>
               <CalculatorIcon className='h-4 w-4' />
@@ -71,19 +74,24 @@ export function CommandPage() {
               <Braces className='h-4 w-4' />
               <span>JSON 格式化</span>
             </CommandItem>
-            <CommandItem onSelect={() => handleItemSelect(() => console.log('Clipboard'))}>
-              <Clipboard className='h-4 w-4' />
-              <span>剪贴板历史</span>
-            </CommandItem>
-            <CommandItem onSelect={() => handleItemSelect(() => console.log('Text Editor'))}>
-              <FileText className='h-4 w-4' />
-              <span>文本编辑器</span>
-            </CommandItem>
-            <CommandItem onSelect={() => handleItemSelect(() => console.log('Music Player'))}>
-              <Music className='h-4 w-4' />
-              <span>音乐播放器</span>
-            </CommandItem>
           </CommandGroup>
+          {!loading && installedApps.length > 0 && (
+            <CommandGroup heading='应用程序'>
+              {installedApps.map(app => (
+                <CommandItem
+                  key={app.path}
+                  onSelect={() => handleItemSelect(() => launchApp(app.path))}
+                >
+                  {app.icon ? (
+                    <img src={app.icon} alt={app.name} className='h-4 w-4 object-contain' />
+                  ) : (
+                    <AppWindow className='h-4 w-4' />
+                  )}
+                  <span>{app.name}</span>
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          )}
         </CommandList>
       </Command>
     </div>
