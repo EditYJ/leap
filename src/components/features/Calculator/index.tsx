@@ -1,12 +1,10 @@
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { ArrowLeft } from 'lucide-react'
+import { ToolLayout } from '@/components/layouts/ToolLayout'
 
-interface CalculatorProps {
-  onBack: () => void
-}
+interface CalculatorProps {}
 
-export function Calculator({ onBack }: CalculatorProps) {
+export function Calculator(_props: CalculatorProps) {
   const [display, setDisplay] = useState('0')
   const [previousValue, setPreviousValue] = useState<number | null>(null)
   const [operation, setOperation] = useState<string | null>(null)
@@ -94,14 +92,7 @@ export function Calculator({ onBack }: CalculatorProps) {
     'h-14 text-lg font-semibold bg-orange-500 text-white hover:bg-orange-600 dark:bg-orange-600 dark:hover:bg-orange-700'
 
   return (
-    <div className='h-screen w-full bg-white p-4 dark:bg-gray-900'>
-      <div className='mb-4 flex items-center gap-2'>
-        <Button variant='ghost' size='icon' onClick={onBack} className='h-8 w-8'>
-          <ArrowLeft className='h-4 w-4' />
-        </Button>
-        <h2 className='text-lg font-semibold'>计算器</h2>
-      </div>
-
+    <ToolLayout title='计算器'>
       <div className='mb-4 rounded-lg bg-gray-100 p-4 text-right dark:bg-gray-800'>
         <div
           className={`overflow-hidden font-bold break-all ${
@@ -187,6 +178,6 @@ export function Calculator({ onBack }: CalculatorProps) {
           =
         </Button>
       </div>
-    </div>
+    </ToolLayout>
   )
 }
