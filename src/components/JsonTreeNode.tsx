@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import { ChevronRight, ChevronDown } from 'lucide-react'
+import { Badge } from '@/components/ui/badge'
+import { cn } from '@/lib/utils'
 
 interface JsonTreeNodeProps {
   data: any
@@ -34,7 +36,7 @@ export function JsonTreeNode({ data, name, isRoot = false, depth = 0 }: JsonTree
     }
   }
 
-  const getTypeColor = (type: string): string => {
+  const getTypeColorClass = (type: string): string => {
     switch (type) {
       case 'string':
         return 'text-green-600 dark:text-green-400'
@@ -43,13 +45,30 @@ export function JsonTreeNode({ data, name, isRoot = false, depth = 0 }: JsonTree
       case 'boolean':
         return 'text-purple-600 dark:text-purple-400'
       case 'null':
-        return 'text-gray-500 dark:text-gray-400'
+        return 'text-muted-foreground'
       case 'object':
         return 'text-yellow-600 dark:text-yellow-400'
       case 'array':
         return 'text-orange-600 dark:text-orange-400'
       default:
-        return 'text-gray-700 dark:text-gray-300'
+        return 'text-foreground'
+    }
+  }
+
+  const getTypeBadgeVariant = (
+    type: string
+  ): 'default' | 'secondary' | 'outline' | 'destructive' => {
+    switch (type) {
+      case 'string':
+        return 'default'
+      case 'number':
+        return 'secondary'
+      case 'boolean':
+        return 'outline'
+      case 'null':
+        return 'secondary'
+      default:
+        return 'outline'
     }
   }
 
@@ -60,13 +79,19 @@ export function JsonTreeNode({ data, name, isRoot = false, depth = 0 }: JsonTree
   // 原始值直接渲染
   if (isPrimitive) {
     return (
-      <div className='flex items-center gap-2 py-0.5 text-sm' style={{ paddingLeft: `${depth * 16}px` }}>
-        {name && (
-          <>
-            <span className='font-medium text-gray-700 dark:text-gray-300'>{name}:</span>
-          </>
+      <div
+        className='hover:bg-accent flex items-center gap-2 rounded px-2 py-1'
+        style={{ paddingLeft: `${depth * 16 + 8}px` }}
+      >
+        {name && <span className='text-foreground font-mono text-sm font-medium'>{name}:</span>}
+        <span className={cn('font-mono text-sm', getTypeColorClass(type))}>
+          {getValuePreview(data)}
+        </span>
+        {depth === 0 && (
+          <Badge variant={getTypeBadgeVariant(type)} className='ml-2 text-xs'>
+            {type}
+          </Badge>
         )}
-        <span className={getTypeColor(type)}>{getValuePreview(data)}</span>
       </div>
     )
   }
@@ -79,23 +104,26 @@ export function JsonTreeNode({ data, name, isRoot = false, depth = 0 }: JsonTree
   return (
     <div>
       <div
-        className='flex cursor-pointer items-center gap-1 py-0.5 text-sm hover:bg-gray-100 dark:hover:bg-gray-800'
-        style={{ paddingLeft: `${depth * 16}px` }}
+        className={cn(
+          'flex cursor-pointer items-center gap-2 rounded px-2 py-1 transition-colors',
+          'hover:bg-accent hover:text-accent-foreground'
+        )}
+        style={{ paddingLeft: `${depth * 16 + 8}px` }}
         onClick={() => setIsExpanded(!isExpanded)}
       >
         {isExpandable && (
           <span className='shrink-0'>
             {isExpanded ? (
-              <ChevronDown className='h-3.5 w-3.5 text-gray-500' />
+              <ChevronDown className='text-muted-foreground h-3.5 w-3.5' />
             ) : (
-              <ChevronRight className='h-3.5 w-3.5 text-gray-500' />
+              <ChevronRight className='text-muted-foreground h-3.5 w-3.5' />
             )}
           </span>
         )}
         {name && !isRoot && (
-          <span className='font-medium text-gray-700 dark:text-gray-300'>{name}:</span>
+          <span className='text-foreground font-mono text-sm font-medium'>{name}:</span>
         )}
-        <span className={`${getTypeColor(type)} ${isExpanded ? '' : 'ml-1'}`}>
+        <span className={cn('font-mono text-sm', getTypeColorClass(type))}>
           {isExpanded ? (type === 'array' ? '[' : '{') : getValuePreview(data)}
         </span>
       </div>
@@ -106,8 +134,8 @@ export function JsonTreeNode({ data, name, isRoot = false, depth = 0 }: JsonTree
             <JsonTreeNode key={key} data={value} name={key} depth={depth + 1} />
           ))}
           <div
-            className='py-0.5 text-sm text-gray-500 dark:text-gray-400'
-            style={{ paddingLeft: `${depth * 16}px` }}
+            className='text-muted-foreground px-2 py-1 font-mono text-sm'
+            style={{ paddingLeft: `${depth * 16 + 8}px` }}
           >
             {type === 'array' ? ']' : '}'}
           </div>

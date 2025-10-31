@@ -33,7 +33,7 @@ export function ToolLayout({ title, children, actions }: ToolLayoutProps) {
       </div>
 
       {/* 内容区域 */}
-      <div className='flex flex-1 flex-col overflow-hidden'>{children}</div>
+      <div className='flex flex-1 flex-col'>{children}</div>
     </div>
   )
 }

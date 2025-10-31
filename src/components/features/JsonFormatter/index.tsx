@@ -1,8 +1,12 @@
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
-import { Copy, Check } from 'lucide-react'
+import { Copy, Check, FileJson, Minimize2, Trash2 } from 'lucide-react'
 import { JsonTreeNode } from '@/components/JsonTreeNode'
 import { ToolLayout } from '@/components/layouts/ToolLayout'
+import { Textarea } from '@/components/ui/textarea'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Badge } from '@/components/ui/badge'
+import { ScrollArea } from '@/components/ui/scroll-area'
 
 interface JsonFormatterProps {}
 
@@ -55,24 +59,45 @@ export function JsonFormatter(_props: JsonFormatterProps) {
     setCopied(false)
   }
 
+  // 获取 JSON 统计信息
+  const getJsonStats = () => {
+    if (!parsedData) return null
+
+    const isArray = Array.isArray(parsedData)
+    const isObject = typeof parsedData === 'object' && !isArray
+
+    if (isArray) {
+      return { type: 'Array', count: parsedData.length }
+    } else if (isObject) {
+      return { type: 'Object', count: Object.keys(parsedData).length }
+    }
+    return null
+  }
+
+  const stats = getJsonStats()
+
   const actions = (
     <>
       <Button variant='outline' size='sm' onClick={clearAll}>
+        <Trash2 className='mr-2 h-4 w-4' />
         清空
       </Button>
-      <Button
-        variant='outline'
-        size='sm'
-        onClick={copyMinified}
-        disabled={!parsedData}
-        className='gap-2'
-      >
-        {copied ? <Check className='h-4 w-4' /> : <Copy className='h-4 w-4' />}
+      <Button variant='outline' size='sm' onClick={copyMinified} disabled={!parsedData}>
+        <Minimize2 className='mr-2 h-4 w-4' />
         复制压缩
       </Button>
-      <Button size='sm' onClick={copyFormatted} disabled={!parsedData} className='gap-2'>
-        {copied ? <Check className='h-4 w-4' /> : <Copy className='h-4 w-4' />}
-        复制格式化
+      <Button size='sm' onClick={copyFormatted} disabled={!parsedData}>
+        {copied ? (
+          <>
+            <Check className='mr-2 h-4 w-4' />
+            已复制
+          </>
+        ) : (
+          <>
+            <Copy className='mr-2 h-4 w-4' />
+            复制格式化
+          </>
+        )}
       </Button>
     </>
   )
@@ -80,31 +105,47 @@ export function JsonFormatter(_props: JsonFormatterProps) {
   return (
     <ToolLayout title='JSON 格式化' actions={actions}>
       {/* 输入框 */}
-      <div className='mb-4'>
-        <textarea
+      <div className='mb-3'>
+        <Textarea
           value={input}
           onChange={e => setInput(e.target.value)}
           placeholder='粘贴 JSON 到这里...'
-          className='h-20 w-full resize-none rounded-md border border-gray-300 bg-white p-3 font-mono text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none dark:border-gray-700 dark:bg-gray-800'
+          className='h-20 resize-none font-mono text-sm'
         />
       </div>
 
+      {/* 状态栏 */}
+      {stats && (
+        <div className='mb-3 flex items-center gap-2'>
+          <Badge variant='secondary' className='gap-1'>
+            <FileJson className='h-3 w-3' />
+            {stats.type}
+          </Badge>
+          <Badge variant='outline'>
+            {stats.count} {stats.type === 'Array' ? 'items' : 'keys'}
+          </Badge>
+        </div>
+      )}
+
       {/* 树形视图区域 */}
-      <div className='flex flex-1 flex-col overflow-hidden'>
-        {error ? (
-          <div className='flex-1 overflow-auto rounded-md border border-red-300 bg-red-50 p-4 font-mono text-sm text-red-600 dark:border-red-800 dark:bg-red-900/20 dark:text-red-400'>
-            错误: {error}
-          </div>
-        ) : parsedData ? (
-          <div className='flex-1 overflow-auto rounded-md border border-gray-300 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800'>
+      {error ? (
+        <Alert variant='destructive'>
+          <AlertDescription className='font-mono text-sm'>{error}</AlertDescription>
+        </Alert>
+      ) : parsedData ? (
+        <ScrollArea className='h-[calc(100vh-208px)] rounded-md border'>
+          <div className='p-4'>
             <JsonTreeNode data={parsedData} isRoot />
           </div>
-        ) : (
-          <div className='flex flex-1 items-center justify-center rounded-md border-2 border-dashed border-gray-300 text-gray-400 dark:border-gray-700'>
-            在上方输入 JSON 即可查看树形结构
+        </ScrollArea>
+      ) : (
+        <div className='flex h-[calc(100vh-208px)] items-center justify-center rounded-md border-2 border-dashed'>
+          <div className='text-muted-foreground text-center'>
+            <FileJson className='mx-auto mb-2 h-8 w-8 opacity-50' />
+            <p className='text-sm'>在上方输入 JSON 即可查看树形结构</p>
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </ToolLayout>
   )
 }
