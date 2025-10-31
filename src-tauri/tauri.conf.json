@@ -20,7 +20,8 @@
         "decorations": false,
         "center": true,
         "skipTaskbar": true,
-        "visible": false
+        "visible": false,
+        "hiddenTitle": true
       }
     ],
     "trayIcon": {
