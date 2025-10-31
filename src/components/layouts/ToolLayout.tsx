@@ -5,11 +5,12 @@ import { ArrowLeft } from 'lucide-react'
 
 interface ToolLayoutProps {
   title: string
+  description?: string
   children: React.ReactNode
   actions?: React.ReactNode
 }
 
-export function ToolLayout({ title, children, actions }: ToolLayoutProps) {
+export function ToolLayout({ title, description, children, actions }: ToolLayoutProps) {
   const navigate = useNavigate()
 
   const handleBack = () => {
@@ -27,7 +28,12 @@ export function ToolLayout({ title, children, actions }: ToolLayoutProps) {
           <Button variant='ghost' size='icon' onClick={handleBack} className='h-8 w-8'>
             <ArrowLeft className='h-4 w-4' />
           </Button>
-          <h2 className='text-lg font-semibold'>{title}</h2>
+          <div className='flex flex-col'>
+            <h2 className='text-lg font-semibold'>{title}</h2>
+            {description && (
+              <p className='text-sm text-muted-foreground'>{description}</p>
+            )}
+          </div>
         </div>
         {actions && <div className='flex gap-2'>{actions}</div>}
       </div>

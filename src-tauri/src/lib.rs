@@ -1,11 +1,12 @@
 use std::thread;
 use std::time::Duration;
-use tauri::{AppHandle, Manager};
+use tauri::{AppHandle, Manager, Emitter};
 use tauri_plugin_global_shortcut::{
     Code, GlobalShortcutExt as _, Modifiers, Shortcut, ShortcutState,
 };
 
 mod apps;
+mod image_compress;
 
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 #[tauri::command]
@@ -21,6 +22,74 @@ fn get_installed_apps() -> Vec<apps::AppInfo> {
 #[tauri::command]
 fn launch_app(path: String) -> Result<(), String> {
     apps::launch_app(&path)
+}
+
+#[tauri::command]
+async fn compress_image(
+    path: String, 
+    max_size_kb: u32,
+    app: AppHandle,
+    image_id: String
+) -> Result<image_compress::CompressResult, String> {
+    // 在单独的线程中执行压缩,避免阻塞主线程
+    tokio::task::spawn_blocking(move || {
+        image_compress::compress_image(&path, max_size_kb, |progress| {
+            // 发送进度事件到前端
+            let _ = app.emit(&format!("compress-progress-{}", image_id), progress);
+        })
+    })
+    .await
+    .map_err(|e| format!("Task join error: {}", e))?
+}
+
+#[tauri::command]
+fn get_cpu_count() -> usize {
+    num_cpus::get()
+}
+
+#[tauri::command]
+async fn save_compressed_image(data: String, path: String) -> Result<(), String> {
+    tokio::task::spawn_blocking(move || {
+        image_compress::save_compressed_image(&data, &path)
+    })
+    .await
+    .map_err(|e| format!("Task join error: {}", e))?
+}
+
+#[tauri::command]
+async fn save_temp_image(data: String, filename: String) -> Result<String, String> {
+    tokio::task::spawn_blocking(move || {
+        image_compress::save_temp_image(&data, &filename)
+    })
+    .await
+    .map_err(|e| format!("Task join error: {}", e))?
+}
+
+#[tauri::command]
+async fn read_file_as_base64(path: String) -> Result<String, String> {
+    tokio::task::spawn_blocking(move || {
+        image_compress::read_file_as_base64(&path)
+    })
+    .await
+    .map_err(|e| format!("Task join error: {}", e))?
+}
+
+#[tauri::command]
+async fn get_file_size(path: String) -> Result<u64, String> {
+    tokio::task::spawn_blocking(move || {
+        image_compress::get_file_size(&path)
+    })
+    .await
+    .map_err(|e| format!("Task join error: {}", e))?
+}
+
+#[tauri::command]
+async fn save_images_as_zip(images: Vec<image_compress::ImageData>, path: String) -> Result<(), String> {
+    tokio::task::spawn_blocking(move || {
+        image_compress::save_images_as_zip(images, &path)
+    })
+    .await
+    .map_err(|e| format!("Task join error: {}", e))?
 }
 
 #[tauri::command]
@@ -99,6 +168,7 @@ async fn animate_window_resize(app: AppHandle, target_width: f64, target_height:
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
         .on_tray_icon_event(|app, event| match event {
             tauri::tray::TrayIconEvent::DoubleClick { .. } => {
@@ -109,16 +179,6 @@ pub fn run() {
         .setup(|app| {
             #[cfg(target_os = "macos")]
             app.set_activation_policy(tauri::ActivationPolicy::Accessory);
-
-            // 监听窗口失去焦点事件
-            if let Some(window) = app.get_webview_window("main") {
-                let window_clone = window.clone();
-                window.on_window_event(move |event| {
-                    if let tauri::WindowEvent::Focused(false) = event {
-                        let _ = window_clone.hide();
-                    }
-                });
-            }
 
             let shortcut = Shortcut::new(Some(Modifiers::CONTROL), Code::Space);
             app.global_shortcut()
@@ -137,7 +197,14 @@ pub fn run() {
             toggle_window,
             animate_window_resize,
             get_installed_apps,
-            launch_app
+            launch_app,
+            compress_image,
+            save_compressed_image,
+            save_temp_image,
+            read_file_as_base64,
+            get_file_size,
+            save_images_as_zip,
+            get_cpu_count
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

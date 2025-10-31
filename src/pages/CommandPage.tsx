@@ -7,7 +7,7 @@ import {
   CommandItem,
   CommandList,
 } from '@/components/ui/command'
-import { Calculator as CalculatorIcon, Braces, AppWindow } from 'lucide-react'
+import { Calculator as CalculatorIcon, Braces, AppWindow, ImageDown } from 'lucide-react'
 import { invoke } from '@tauri-apps/api/core'
 import { useNavigate } from 'react-router-dom'
 
@@ -51,6 +51,10 @@ export function CommandPage() {
     navigate('/json-formatter')
   }
 
+  const openImageCompressor = () => {
+    navigate('/image-compressor')
+  }
+
   const launchApp = async (path: string) => {
     try {
       await invoke('launch_app', { path })
@@ -73,6 +77,10 @@ export function CommandPage() {
             <CommandItem onSelect={openJsonFormatter}>
               <Braces className='h-4 w-4' />
               <span>JSON 格式化</span>
+            </CommandItem>
+            <CommandItem onSelect={openImageCompressor}>
+              <ImageDown className='h-4 w-4' />
+              <span>图片压缩</span>
             </CommandItem>
           </CommandGroup>
           {!loading && installedApps.length > 0 && (
