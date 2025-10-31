@@ -7,6 +7,7 @@ const routeSizes: Record<string, { width: number; height: number }> = {
   '/calculator': { width: 360, height: 524 },
   '/json-formatter': { width: 750, height: 600 },
   '/image-compressor': { width: 750, height: 600 },
+  '/pdf-merger': { width: 800, height: 700 },
 }
 
 export function useWindowResize() {

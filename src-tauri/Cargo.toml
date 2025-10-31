@@ -34,6 +34,7 @@ imagequant = "4.3"
 png = "0.17"
 zip = "2.1"
 num_cpus = "1.16"
+printpdf = "0.7"
 
 [target.'cfg(windows)'.dependencies]
 winreg = "0.52"

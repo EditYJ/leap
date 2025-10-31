@@ -7,6 +7,7 @@ use tauri_plugin_global_shortcut::{
 
 mod apps;
 mod image_compress;
+mod pdf_generator;
 
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 #[tauri::command]
@@ -87,6 +88,15 @@ async fn get_file_size(path: String) -> Result<u64, String> {
 async fn save_images_as_zip(images: Vec<image_compress::ImageData>, path: String) -> Result<(), String> {
     tokio::task::spawn_blocking(move || {
         image_compress::save_images_as_zip(images, &path)
+    })
+    .await
+    .map_err(|e| format!("Task join error: {}", e))?
+}
+
+#[tauri::command]
+async fn generate_pdf(text: String, image_paths: Vec<String>, output_path: String) -> Result<(), String> {
+    tokio::task::spawn_blocking(move || {
+        pdf_generator::generate_pdf(&text, image_paths, &output_path)
     })
     .await
     .map_err(|e| format!("Task join error: {}", e))?
@@ -204,7 +214,8 @@ pub fn run() {
             read_file_as_base64,
             get_file_size,
             save_images_as_zip,
-            get_cpu_count
+            get_cpu_count,
+            generate_pdf
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

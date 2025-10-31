@@ -4,6 +4,7 @@ import { CommandPage } from './pages/CommandPage'
 import { CalculatorPage } from './pages/CalculatorPage'
 import { JsonFormatterPage } from './pages/JsonFormatterPage'
 import { ImageCompressorPage } from './pages/ImageCompressorPage'
+import { PdfMergerPage } from './pages/PdfMergerPage'
 import { useWindowResize } from './hooks/useWindowResize'
 
 function AppLayout() {
@@ -21,6 +22,7 @@ function App() {
             <Route path='/calculator' element={<CalculatorPage />} />
             <Route path='/json-formatter' element={<JsonFormatterPage />} />
             <Route path='/image-compressor' element={<ImageCompressorPage />} />
+            <Route path='/pdf-merger' element={<PdfMergerPage />} />
           </Route>
         </Routes>
       </div>
